@@ -157,6 +157,8 @@ body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;bac
 .ani{animation:up .35s var(--ease) both;}
 .mr-spin{width:28px;height:28px;margin:0 auto 14px;border:2px solid var(--p100);border-top-color:var(--p500);border-radius:50%;animation:spin .7s linear infinite;}
 
+/* SHOWCASE OVERALL-ONLY SECTIONS */
+body.sc-mode .sc-overall-only{display:none!important;}
 /* MODE TOGGLE */
 .mode-toggle{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;font-family:'Inter',sans-serif;padding:3px 10px;border-radius:20px;border:1px solid var(--mist);background:var(--ghost);color:var(--ink4);cursor:pointer;transition:all .2s var(--ease);}
 .mode-toggle:hover{border-color:var(--p300);color:var(--p600);background:var(--p50);}
@@ -222,7 +224,7 @@ body.sc-active #body{opacity:0;transform:translateX(-48px);pointer-events:none;}
       <div class="live"><div class="live-dot"></div>Live</div>
       <button id="mode-toggle" class="mode-toggle" onclick="toggleMode(this)">
         <span class="mode-toggle-dot"></span>
-        <span id="mode-toggle-lbl">Showcase</span>
+        <span id="mode-toggle-lbl">Overall</span>
       </button>
       <div class="hdr-date" id="hdr-date">Thu, 12 Jun 2026</div>
     </div>
@@ -314,8 +316,8 @@ body.sc-active #body{opacity:0;transform:translateX(-48px);pointer-events:none;}
           <canvas id="sparkChart" height="90"></canvas>
         </div>
 
-        <div class="sl">Performance Trend</div>
-        <div class="card ani" style="margin-bottom:12px">
+        <div class="sl sc-overall-only">Performance Trend</div>
+        <div class="card ani sc-overall-only" style="margin-bottom:12px">
           <div class="card-hd">
             <div class="card-hd-l"><div class="ct">Performance Trend</div></div>
             <div class="ctgl" id="mom-toggle">
@@ -326,8 +328,8 @@ body.sc-active #body{opacity:0;transform:translateX(-48px);pointer-events:none;}
           <canvas id="momChart" height="90"></canvas>
         </div>
 
-        <div class="sl">Client Rankings</div>
-        <div class="g21">
+        <div class="sl sc-overall-only">Client Rankings</div>
+        <div class="g21 sc-overall-only">
           <div class="card ani">
             <div class="ct" style="margin-bottom:12px">Top 10 Clients</div>
             <div style="overflow-x:auto">
@@ -343,14 +345,14 @@ body.sc-active #body{opacity:0;transform:translateX(-48px);pointer-events:none;}
           </div>
         </div>
 
-        <div class="sl">Intelligence</div>
-        <div class="card ani" style="margin-bottom:12px">
+        <div class="sl sc-overall-only">Intelligence</div>
+        <div class="card ani sc-overall-only" style="margin-bottom:12px">
           <div class="ct" style="margin-bottom:10px">Improvement Areas</div>
           <div class="scr" style="max-height:220px" id="alerts"></div>
         </div>
 
-        <div class="sl">All Clients</div>
-        <div class="card ani">
+        <div class="sl sc-overall-only">All Clients</div>
+        <div class="card ani sc-overall-only">
           <div class="ct" style="margin-bottom:12px">Complete Client View</div>
           <div style="overflow-x:auto">
             <table class="tbl">
@@ -777,14 +779,11 @@ function toggleMode(btn){
   showcaseMode = !showcaseMode;
   document.body.classList.toggle('sc-mode', showcaseMode);
   btn.classList.toggle('active', showcaseMode);
-  document.getElementById('mode-toggle-lbl').textContent = showcaseMode?'Normal':'Showcase';
+  document.getElementById('mode-toggle-lbl').textContent = showcaseMode?'Showcase':'Overall';
   if(showcaseMode){
-    // IMMEDIATELY show the showcase on activate, then cycle
-    renderShowcase();
-    document.getElementById('showcase').classList.add('sc-on');
-    document.body.classList.add('sc-active');
+    // Show dark dashboard view first, then cycle to Top 10 after SC_MAIN_MS
     clearTimeout(scTimer);
-    scTimer = setTimeout(hideShowcase, SC_SHOWCASE_MS);
+    scTimer = setTimeout(showShowcase, SC_MAIN_MS);
   } else {
     clearTimeout(scTimer);
     document.getElementById('showcase').classList.remove('sc-on');

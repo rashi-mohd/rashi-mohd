@@ -301,6 +301,9 @@ body::before{
   #sidebar{display:none;}
 }
 
+/* ── SHOWCASE-ONLY HIDDEN SECTIONS ── */
+body.sc-mode .sc-overall-only { display: none !important; }
+
 /* ── MODE TOGGLE BUTTON ── */
 .mode-toggle{
   display:inline-flex;align-items:center;gap:5px;
@@ -412,7 +415,7 @@ body.sc-active #body{opacity:0;transform:translateX(-48px);pointer-events:none;}
       <div class="live"><div class="live-dot"></div>Live</div>
       <button id="mode-toggle" class="mode-toggle" onclick="toggleMode(this)" title="Toggle showcase mode">
         <span class="mode-toggle-dot"></span>
-        <span id="mode-toggle-lbl">Showcase</span>
+        <span id="mode-toggle-lbl">Overall</span>
       </button>
       <div class="hdr-date" id="hdr-date">—</div>
     </div>
@@ -555,8 +558,8 @@ body.sc-active #body{opacity:0;transform:translateX(-48px);pointer-events:none;}
         </div>
 
         <!-- Performance Trend -->
-        <div class="sl">Performance Trend</div>
-        <div class="card ani" style="margin-bottom:12px">
+        <div class="sl sc-overall-only">Performance Trend</div>
+        <div class="card ani sc-overall-only" style="margin-bottom:12px">
           <div class="card-hd">
             <div class="card-hd-l">
               <div class="ct">Performance Trend</div>
@@ -570,8 +573,8 @@ body.sc-active #body{opacity:0;transform:translateX(-48px);pointer-events:none;}
         </div>
 
         <!-- Rankings -->
-        <div class="sl">Client Rankings</div>
-        <div class="g21">
+        <div class="sl sc-overall-only">Client Rankings</div>
+        <div class="g21 sc-overall-only">
           <div class="card ani">
             <div class="ct" style="margin-bottom:12px">Top 10 Clients</div>
             <div style="overflow-x:auto">
@@ -588,15 +591,15 @@ body.sc-active #body{opacity:0;transform:translateX(-48px);pointer-events:none;}
         </div>
 
         <!-- Intelligence -->
-        <div class="sl">Intelligence</div>
-        <div class="card ani" style="margin-bottom:12px">
+        <div class="sl sc-overall-only">Intelligence</div>
+        <div class="card ani sc-overall-only" style="margin-bottom:12px">
           <div class="ct" style="margin-bottom:10px">Improvement Areas</div>
           <div class="scr" style="max-height:220px" id="alerts"></div>
         </div>
 
         <!-- All Clients -->
-        <div class="sl">All Clients</div>
-        <div class="card ani">
+        <div class="sl sc-overall-only">All Clients</div>
+        <div class="card ani sc-overall-only">
           <div class="ct" style="margin-bottom:12px">Complete Client View</div>
           <div style="overflow-x:auto">
             <table class="tbl">
@@ -1212,7 +1215,7 @@ function toggleMode(btn) {
   showcaseMode = !showcaseMode;
   document.body.classList.toggle('sc-mode', showcaseMode);
   btn.classList.toggle('active', showcaseMode);
-  document.getElementById('mode-toggle-lbl').textContent = showcaseMode ? 'Normal' : 'Showcase';
+  document.getElementById('mode-toggle-lbl').textContent = showcaseMode ? 'Showcase' : 'Overall';
   if (showcaseMode) {
     startShowcaseCycle();
   } else {
