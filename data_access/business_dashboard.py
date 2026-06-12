@@ -168,6 +168,33 @@ def fetch_all_clients_summary():
     return results
 
 
+def fetch_per_credit_cost_inr(org_ids):
+    """
+    Returns {org_id: per_interview_cost_inr} for the given list of org UUIDs.
+    Missing or NULL values default to 0.0.
+    """
+    if not org_ids:
+        return {}
+    conn = get_db_connection()
+    result = {}
+    try:
+        with conn.cursor() as cur:
+            placeholders = ', '.join(['%s'] * len(org_ids))
+            cur.execute(f"""
+                SELECT id, per_interview_cost_inr
+                FROM user_management_organization
+                WHERE id::text IN ({placeholders})
+            """, org_ids)
+            for row in cur.fetchall():
+                cost = row.get('per_interview_cost_inr')
+                result[str(row['id'])] = float(cost) if cost is not None else 0.0
+    except psycopg2.Error as e:
+        print(f"Database error in fetch_per_credit_cost_inr: {e}")
+    finally:
+        conn.close()
+    return result
+
+
 def fetch_monthly_summaries(start_utc, end_utc):
     """
     Returns per-month aggregates of DONE calls and credits within the given UTC window.

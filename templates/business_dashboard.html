@@ -320,6 +320,59 @@ body::before{
   :root{--sidebar-w:0px;}
   #sidebar{display:none;}
 }
+
+/* ── TV SHOWCASE OVERLAY ── */
+#showcase{
+  position:fixed;
+  /* sit below header + ctrl bar (~52+45px) but cover everything else */
+  top:97px; left:0; right:0; bottom:0;
+  z-index:600;
+  background:linear-gradient(135deg,#0d0620 0%,#1a0838 45%,#0f0530 100%);
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .7s var(--ease);
+  display:flex;align-items:center;justify-content:center;
+}
+#showcase.sc-on{opacity:1;pointer-events:auto;}
+
+.sc-inner{width:82%;max-width:960px;}
+
+.sc-hd{
+  display:flex;justify-content:space-between;align-items:baseline;
+  border-bottom:1px solid rgba(139,92,246,.25);
+  padding-bottom:14px;margin-bottom:28px;
+}
+.sc-title{font-size:26px;font-weight:700;letter-spacing:-.02em;color:#fff;}
+.sc-subtitle{font-size:13px;font-weight:500;color:var(--p300);}
+
+.sc-row{
+  display:flex;align-items:center;gap:14px;margin-bottom:13px;
+  opacity:0;animation:sc-in .45s var(--ease) both;
+}
+@keyframes sc-in{from{opacity:0;transform:translateX(-20px);}to{opacity:1;transform:translateX(0);}}
+
+.sc-rk{width:22px;font-size:11px;font-weight:700;color:var(--p400);text-align:right;flex-shrink:0;}
+.sc-nm{
+  width:190px;font-size:14px;font-weight:600;color:#fff;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;
+}
+.sc-bw{flex:1;height:7px;background:rgba(255,255,255,.07);border-radius:99px;overflow:hidden;}
+.sc-bf{
+  height:100%;border-radius:99px;width:0;
+  background:linear-gradient(90deg,var(--p600),var(--p400));
+  animation:sc-grow .9s var(--ease) both;
+}
+@keyframes sc-grow{from{width:0}to{width:var(--tw)}}
+.sc-vl{width:80px;text-align:right;font-size:13px;font-weight:700;color:var(--p300);flex-shrink:0;}
+
+/* progress bar at bottom of showcase */
+.sc-prog{
+  margin-top:28px;height:2px;background:rgba(255,255,255,.1);border-radius:99px;overflow:hidden;
+}
+.sc-prog-fill{
+  height:100%;background:linear-gradient(90deg,var(--p600),var(--p400));
+  width:0;transition:width linear;
+}
 </style>
 </head>
 <body>
@@ -550,6 +603,9 @@ body::before{
   </div><!-- /body -->
 </div><!-- /app -->
 
+<!-- ─── TV SHOWCASE OVERLAY ─── -->
+<div id="showcase"></div>
+
 <script>
 /* ─── CONFIG ─── */
 const CONFIG = {
@@ -589,6 +645,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   applyStoredForecasts();
   renderAll();
   initClientSort();
+  startShowcaseCycle();
 
   // Auto-refresh data on the same cadence as the other dashboards
   setInterval(async () => {
@@ -734,7 +791,10 @@ function getKpiData() {
   const active = clients.filter(c => c.calls > 0);
   const avgInt = active.length ? Math.round(totCalls / active.length) : 0;
 
-  return { clients, totCalls, totCredits, totPot, ratio, attPct, prev, cur, avgInt, active };
+  // Revenue = sum of (credits × per_interview_cost_inr) per org
+  const revenue = clients.reduce((s, c) => s + (c.credits * (c.per_credit_cost_inr || 0)), 0);
+
+  return { clients, totCalls, totCredits, totPot, ratio, attPct, prev, cur, avgInt, active, revenue };
 }
 
 function periodLabel() {
@@ -748,7 +808,7 @@ function periodLabel() {
 function renderAll() {
   if (!DB.current) return;
   const trendHist = getFilteredHistory();
-  const { clients, totCalls, totCredits, totPot, ratio, attPct, prev, cur, avgInt, active } = getKpiData();
+  const { clients, totCalls, totCredits, totPot, ratio, attPct, prev, cur, avgInt, active, revenue } = getKpiData();
 
   document.getElementById('sidebar-period').textContent = periodLabel();
 
@@ -765,8 +825,8 @@ function renderAll() {
   $n('v-credits',  nf(totCredits));
   $n('v-ratio',    ratio.toFixed(2) + '×');
   $n('v-ratio-sub', ratio > 2 ? 'high value' : ratio > 1.5 ? 'good' : 'moderate');
-  $n('v-revenue',     '—');
-  $n('v-revenue-sub', 'calculation pending');
+  $n('v-revenue',     revenue > 0 ? fmtINR(revenue) : '—');
+  $n('v-revenue-sub', revenue > 0 ? 'this period' : 'rates not configured');
   $n('v-calls-d',  daEl(dCalls));
   $n('v-credits-d',daEl(dCred));
   $n('v-ratio-d',  daEl(dRatio));
@@ -1146,6 +1206,81 @@ const cx       = id     => document.getElementById(id).getContext('2d');
 const killC    = id     => { if(CH[id]){ CH[id].destroy(); delete CH[id]; } };
 const nf       = n      => n%1 ? n.toFixed(1) : n.toLocaleString(CONFIG.LOCALE);
 const calcPct  = (now,prev) => prev ? Math.round(((now-prev)/prev)*100) : null;
+
+function fmtINR(v) {
+  if (v >= 1000) return '₹' + (v / 1000).toFixed(1) + 'k';
+  return '₹' + Math.round(v);
+}
+
+/* ─── TV SHOWCASE MODE ─── */
+const SC_MAIN_MS     = 12000;   // time spent on main dashboard
+const SC_SHOWCASE_MS = 10000;   // time spent on showcase
+let scTimer = null;
+
+function startShowcaseCycle() {
+  clearTimeout(scTimer);
+  scTimer = setTimeout(_showShowcase, SC_MAIN_MS);
+}
+
+function _showShowcase() {
+  if (!DB.current) { startShowcaseCycle(); return; }
+  _renderShowcase();
+  const el = document.getElementById('showcase');
+  el.classList.add('sc-on');
+  // animate progress bar
+  const fill = el.querySelector('.sc-prog-fill');
+  if (fill) {
+    fill.style.transition = 'none';
+    fill.style.width = '0%';
+    requestAnimationFrame(() => {
+      fill.style.transition = `width ${SC_SHOWCASE_MS}ms linear`;
+      fill.style.width = '100%';
+    });
+  }
+  scTimer = setTimeout(_hideShowcase, SC_SHOWCASE_MS);
+}
+
+function _hideShowcase() {
+  document.getElementById('showcase').classList.remove('sc-on');
+  scTimer = setTimeout(_showShowcase, SC_MAIN_MS);
+}
+
+function _renderShowcase() {
+  const { clients } = getKpiData();
+  const top10   = [...clients].sort((a, b) => b.credits - a.credits).slice(0, 10);
+  const maxCred = top10[0]?.credits || 1;
+  const period  = periodLabel();
+
+  const rows = top10.map((c, i) => {
+    const pct   = ((c.credits / maxCred) * 100).toFixed(1);
+    const delay = (i * 0.07).toFixed(2);
+    return `
+      <div class="sc-row" style="animation-delay:${delay}s">
+        <div class="sc-rk">${i + 1}</div>
+        <div class="sc-nm">${c.name}</div>
+        <div class="sc-bw"><div class="sc-bf" style="--tw:${pct}%;animation-delay:${delay}s"></div></div>
+        <div class="sc-vl">${nf(c.credits)}</div>
+      </div>`;
+  }).join('');
+
+  document.getElementById('showcase').innerHTML = `
+    <div class="sc-inner">
+      <div class="sc-hd">
+        <div class="sc-title">Top Clients by Credits</div>
+        <div class="sc-subtitle">${period}</div>
+      </div>
+      ${rows}
+      <div class="sc-prog"><div class="sc-prog-fill"></div></div>
+    </div>`;
+}
+
+// Clicking showcase dismisses it early and restarts the cycle
+document.getElementById('showcase').addEventListener('click', () => {
+  clearTimeout(scTimer);
+  _hideShowcase();
+  clearTimeout(scTimer);
+  scTimer = setTimeout(_showShowcase, SC_MAIN_MS);
+});
 </script>
 </body>
 </html>
