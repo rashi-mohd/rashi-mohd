@@ -321,28 +321,79 @@ body::before{
   #sidebar{display:none;}
 }
 
+/* ── MODE TOGGLE BUTTON ── */
+.mode-toggle{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:11px;font-weight:600;font-family:'Inter',sans-serif;
+  padding:3px 10px;border-radius:20px;
+  border:1px solid var(--mist);background:var(--ghost);color:var(--ink4);
+  cursor:pointer;transition:all .2s var(--ease);
+}
+.mode-toggle:hover{border-color:var(--p300);color:var(--p600);background:var(--p50);}
+.mode-toggle.active{background:#0a0e18;color:var(--p300);border-color:var(--p700);}
+.mode-toggle-dot{width:5px;height:5px;border-radius:50%;background:currentColor;transition:all .2s;}
+.mode-toggle.active .mode-toggle-dot{box-shadow:0 0 5px currentColor;}
+
+/* ── DARK / PALANTIR SHOWCASE THEME ── */
+body.sc-mode{
+  --canvas:#0a0e18; --white:#0f1525; --ghost:#141c2e;
+  --mist:#1e2a42; --rule:#1a2438;
+  --ink:#d4d8e8; --ink2:#adb3c8; --ink3:#7d86a0;
+  --ink4:#565e78; --ink5:#3c4460; --ink6:#2a3250;
+}
+body.sc-mode::before{
+  background-image:radial-gradient(circle,rgba(105,53,222,.05) 1px,transparent 1px);
+}
+body.sc-mode #hdr{background:rgba(10,14,24,.97);border-bottom-color:rgba(139,92,246,.15);}
+body.sc-mode #ctrl{background:rgba(10,14,24,.85);border-bottom-color:rgba(139,92,246,.12);}
+body.sc-mode .card{background:var(--white);border-color:var(--mist);box-shadow:0 1px 4px rgba(0,0,0,.35);}
+body.sc-mode .card:hover{border-color:var(--p700);box-shadow:0 2px 14px rgba(105,53,222,.18);}
+body.sc-mode .sub-tile{background:var(--white);border-color:var(--mist);}
+body.sc-mode .kpi-tile:hover{background:rgba(105,53,222,.07);}
+body.sc-mode .ctrl-dd{
+  background-color:var(--ghost);border-color:var(--mist);color:var(--ink2);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%235228C0' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+body.sc-mode .ctrl-dd option{background:#0f1525;color:#d4d8e8;}
+body.sc-mode .export-btn{background:var(--ghost);border-color:var(--mist);color:var(--ink2);}
+body.sc-mode .nav-link-back{background:var(--ghost);border-color:var(--mist);color:var(--ink4);}
+body.sc-mode .hdr-date{background:rgba(105,53,222,.1);border-color:rgba(105,53,222,.25);}
+body.sc-mode .tbl tbody tr:hover{background:rgba(105,53,222,.06);}
+body.sc-mode .tbl thead th{border-bottom-color:var(--rule);}
+body.sc-mode .tbl tbody tr{border-bottom-color:rgba(30,42,66,.8);}
+body.sc-mode .sidebar-period{border-bottom-color:rgba(139,92,246,.2);}
+body.sc-mode .kpi-tile+.kpi-tile{border-top-color:rgba(139,92,246,.12);}
+
+/* theme-switch transition on key containers */
+#hdr,#ctrl,#sidebar,body::before,.card,.sub-tile,.kpi-tile{
+  transition:background .45s var(--ease),border-color .45s var(--ease);
+}
+
+/* ── SWIPE TRANSITION: body panel slides out, showcase slides in ── */
+#body{transition:opacity .55s var(--ease),transform .55s var(--ease);}
+body.sc-active #body{opacity:0;transform:translateX(-48px);pointer-events:none;}
+
 /* ── TV SHOWCASE OVERLAY ── */
 #showcase{
   position:fixed;
-  /* sit below header + ctrl bar (~52+45px) but cover everything else */
-  top:97px; left:0; right:0; bottom:0;
+  top:97px;left:0;right:0;bottom:0;
   z-index:600;
-  background:linear-gradient(135deg,#0d0620 0%,#1a0838 45%,#0f0530 100%);
-  opacity:0;
-  pointer-events:none;
-  transition:opacity .7s var(--ease);
+  background:linear-gradient(160deg,#060a12 0%,#0e1528 55%,#060c18 100%);
+  opacity:0;pointer-events:none;
+  transform:translateX(64px);
+  transition:opacity .55s var(--ease),transform .55s var(--ease);
   display:flex;align-items:center;justify-content:center;
 }
-#showcase.sc-on{opacity:1;pointer-events:auto;}
+#showcase.sc-on{opacity:1;pointer-events:auto;transform:translateX(0);}
 
 .sc-inner{width:82%;max-width:960px;}
 
 .sc-hd{
   display:flex;justify-content:space-between;align-items:baseline;
-  border-bottom:1px solid rgba(139,92,246,.25);
+  border-bottom:1px solid rgba(139,92,246,.2);
   padding-bottom:14px;margin-bottom:28px;
 }
-.sc-title{font-size:26px;font-weight:700;letter-spacing:-.02em;color:#fff;}
+.sc-title{font-size:26px;font-weight:700;letter-spacing:-.02em;color:#e8eaf4;}
 .sc-subtitle{font-size:13px;font-weight:500;color:var(--p300);}
 
 .sc-row{
@@ -353,26 +404,17 @@ body::before{
 
 .sc-rk{width:22px;font-size:11px;font-weight:700;color:var(--p400);text-align:right;flex-shrink:0;}
 .sc-nm{
-  width:190px;font-size:14px;font-weight:600;color:#fff;
+  width:190px;font-size:14px;font-weight:600;color:#e8eaf4;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;
 }
-.sc-bw{flex:1;height:7px;background:rgba(255,255,255,.07);border-radius:99px;overflow:hidden;}
+.sc-bw{flex:1;height:6px;background:rgba(255,255,255,.06);border-radius:99px;overflow:hidden;}
 .sc-bf{
   height:100%;border-radius:99px;width:0;
-  background:linear-gradient(90deg,var(--p600),var(--p400));
+  background:linear-gradient(90deg,var(--p700),var(--p400));
   animation:sc-grow .9s var(--ease) both;
 }
 @keyframes sc-grow{from{width:0}to{width:var(--tw)}}
 .sc-vl{width:80px;text-align:right;font-size:13px;font-weight:700;color:var(--p300);flex-shrink:0;}
-
-/* progress bar at bottom of showcase */
-.sc-prog{
-  margin-top:28px;height:2px;background:rgba(255,255,255,.1);border-radius:99px;overflow:hidden;
-}
-.sc-prog-fill{
-  height:100%;background:linear-gradient(90deg,var(--p600),var(--p400));
-  width:0;transition:width linear;
-}
 </style>
 </head>
 <body>
@@ -388,6 +430,10 @@ body::before{
     <div class="hdr-r">
       <a href="{{ url_for('dashboard') }}" class="nav-link-back">← Main Dashboard</a>
       <div class="live"><div class="live-dot"></div>Live</div>
+      <button id="mode-toggle" class="mode-toggle" onclick="toggleMode(this)" title="Toggle showcase mode">
+        <span class="mode-toggle-dot"></span>
+        <span id="mode-toggle-lbl">Showcase</span>
+      </button>
       <div class="hdr-date" id="hdr-date">—</div>
     </div>
   </div>
@@ -645,7 +691,6 @@ window.addEventListener('DOMContentLoaded', async () => {
   applyStoredForecasts();
   renderAll();
   initClientSort();
-  startShowcaseCycle();
 
   // Auto-refresh data on the same cadence as the other dashboards
   setInterval(async () => {
@@ -1213,36 +1258,43 @@ function fmtINR(v) {
 }
 
 /* ─── TV SHOWCASE MODE ─── */
-const SC_MAIN_MS     = 12000;   // time spent on main dashboard
-const SC_SHOWCASE_MS = 10000;   // time spent on showcase
+const SC_MAIN_MS     = 60000;  // 1 min on main dashboard
+const SC_SHOWCASE_MS = 60000;  // 1 min on top-10 showcase
 let scTimer = null;
+let showcaseMode = false;
+
+function toggleMode(btn) {
+  showcaseMode = !showcaseMode;
+  document.body.classList.toggle('sc-mode', showcaseMode);
+  btn.classList.toggle('active', showcaseMode);
+  document.getElementById('mode-toggle-lbl').textContent = showcaseMode ? 'Normal' : 'Showcase';
+  if (showcaseMode) {
+    startShowcaseCycle();
+  } else {
+    clearTimeout(scTimer);
+    document.getElementById('showcase').classList.remove('sc-on');
+    document.body.classList.remove('sc-active');
+  }
+}
 
 function startShowcaseCycle() {
   clearTimeout(scTimer);
-  scTimer = setTimeout(_showShowcase, SC_MAIN_MS);
+  if (showcaseMode) scTimer = setTimeout(_showShowcase, SC_MAIN_MS);
 }
 
 function _showShowcase() {
+  if (!showcaseMode) return;
   if (!DB.current) { startShowcaseCycle(); return; }
   _renderShowcase();
-  const el = document.getElementById('showcase');
-  el.classList.add('sc-on');
-  // animate progress bar
-  const fill = el.querySelector('.sc-prog-fill');
-  if (fill) {
-    fill.style.transition = 'none';
-    fill.style.width = '0%';
-    requestAnimationFrame(() => {
-      fill.style.transition = `width ${SC_SHOWCASE_MS}ms linear`;
-      fill.style.width = '100%';
-    });
-  }
+  document.getElementById('showcase').classList.add('sc-on');
+  document.body.classList.add('sc-active');
   scTimer = setTimeout(_hideShowcase, SC_SHOWCASE_MS);
 }
 
 function _hideShowcase() {
   document.getElementById('showcase').classList.remove('sc-on');
-  scTimer = setTimeout(_showShowcase, SC_MAIN_MS);
+  document.body.classList.remove('sc-active');
+  if (showcaseMode) scTimer = setTimeout(_showShowcase, SC_MAIN_MS);
 }
 
 function _renderShowcase() {
@@ -1270,16 +1322,14 @@ function _renderShowcase() {
         <div class="sc-subtitle">${period}</div>
       </div>
       ${rows}
-      <div class="sc-prog"><div class="sc-prog-fill"></div></div>
     </div>`;
 }
 
-// Clicking showcase dismisses it early and restarts the cycle
+// Clicking showcase while active skips back to main and restarts cycle
 document.getElementById('showcase').addEventListener('click', () => {
+  if (!showcaseMode) return;
   clearTimeout(scTimer);
   _hideShowcase();
-  clearTimeout(scTimer);
-  scTimer = setTimeout(_showShowcase, SC_MAIN_MS);
 });
 </script>
 </body>
