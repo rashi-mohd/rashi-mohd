@@ -957,29 +957,29 @@ function renderSpark() {
   const daily  = isCred ? (DB.current.daily_credits || []) : (DB.current.daily || []);
   if (!daily.length) return;
 
-  const peak = isCred ? parseFloat(Math.max(...daily).toFixed(1)) : Math.max(...daily);
+  // Trim trailing zeros — future days have no data and would pull avg to zero
+  let activeLen = daily.length;
+  while (activeLen > 1 && daily[activeLen - 1] === 0) activeLen--;
+  const activeDays = daily.slice(0, activeLen);
+
+  const peak = isCred ? parseFloat(Math.max(...activeDays).toFixed(1)) : Math.max(...activeDays);
   const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth()+1, 0).getDate();
   const fmt  = v => isCred ? nf(v) : v.toLocaleString(CONFIG.LOCALE);
   const lbl  = isCred ? 'Credits' : 'Interviews';
 
-  // 7-day moving average for each day
+  // 7-day moving average line — null for future days
   const movAvg = daily.map((_,i) => {
-    if (i < 6) return null;
-    const slice = daily.slice(i-6, i+1);
+    if (i < 6 || i >= activeLen) return null;
+    const slice = daily.slice(i - 6, i + 1);
     const ma = slice.reduce((s,v) => s+v, 0) / 7;
     return isCred ? parseFloat(ma.toFixed(1)) : Math.round(ma);
   });
 
-  // Current 7-day avg: last non-null value in movAvg
-  let sevenDayAvg = null;
-  for (let i = movAvg.length - 1; i >= 0; i--) {
-    if (movAvg[i] !== null) { sevenDayAvg = movAvg[i]; break; }
-  }
-  // Fallback: if fewer than 7 days of data, use simple average of available days
-  if (sevenDayAvg === null) {
-    const sum = daily.reduce((s,v) => s+v, 0);
-    sevenDayAvg = isCred ? parseFloat((sum / daily.length).toFixed(1)) : Math.round(sum / daily.length);
-  }
+  // Current 7-day avg: average of last min(7, activeLen) actual days
+  const window7 = activeDays.slice(-7);
+  const sevenDayAvg = isCred
+    ? parseFloat((window7.reduce((s,v) => s+v, 0) / window7.length).toFixed(1))
+    : Math.round(window7.reduce((s,v) => s+v, 0) / window7.length);
 
   // Run rate = current 7-day avg × days in month
   const runRate = isCred

@@ -593,19 +593,24 @@ function setSparkMode(m){
 function renderSpark(){
   const isCred=sparkMode==='cred';
   const daily=isCred?DAILY_CREDITS:DAILY_CALLS;
-  const peak=isCred?parseFloat(Math.max(...daily).toFixed(1)):Math.max(...daily);
+
+  // Trim trailing zeros — future days have no data and would pull avg to zero
+  let activeLen=daily.length;
+  while(activeLen>1&&daily[activeLen-1]===0)activeLen--;
+  const activeDays=daily.slice(0,activeLen);
+
+  const peak=isCred?parseFloat(Math.max(...activeDays).toFixed(1)):Math.max(...activeDays);
   const fmt=v=>isCred?nf(v):v.toLocaleString(CONFIG.LOCALE);
   const lbl=isCred?'Credits':'Interviews';
 
   const movAvg=daily.map((_,i)=>{
-    if(i<6)return null;
+    if(i<6||i>=activeLen)return null;
     const s=daily.slice(i-6,i+1);
     const ma=s.reduce((a,v)=>a+v,0)/7;
     return isCred?parseFloat(ma.toFixed(1)):Math.round(ma);
   });
-  let avg7=null;
-  for(let i=movAvg.length-1;i>=0;i--){if(movAvg[i]!==null){avg7=movAvg[i];break;}}
-  if(avg7===null){const s=daily.reduce((a,v)=>a+v,0);avg7=isCred?parseFloat((s/daily.length).toFixed(1)):Math.round(s/daily.length);}
+  const w7=activeDays.slice(-7);
+  const avg7=isCred?parseFloat((w7.reduce((a,v)=>a+v,0)/w7.length).toFixed(1)):Math.round(w7.reduce((a,v)=>a+v,0)/w7.length);
   const runRate=isCred?parseFloat((avg7*30).toFixed(1)):Math.round(avg7*30);
 
   $n('spark-kpis',`
