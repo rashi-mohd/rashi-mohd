@@ -377,17 +377,6 @@ body::before{
       <div class="sidebar-period" id="sidebar-period">This Month</div>
 
       <div class="kpi-tile">
-        <span class="kpi-lbl">Total Interviews</span>
-        <div class="kpi-row">
-          <div>
-            <div class="kpi-val" id="v-calls">—</div>
-            <span class="kpi-sub">completed</span>
-          </div>
-          <div class="da-wrap" id="v-calls-d"></div>
-        </div>
-      </div>
-
-      <div class="kpi-tile">
         <span class="kpi-lbl">Total Credits</span>
         <div class="kpi-row">
           <div>
@@ -395,6 +384,17 @@ body::before{
             <span class="kpi-sub">consumed</span>
           </div>
           <div class="da-wrap" id="v-credits-d"></div>
+        </div>
+      </div>
+
+      <div class="kpi-tile">
+        <span class="kpi-lbl">Total Interviews</span>
+        <div class="kpi-row">
+          <div>
+            <div class="kpi-val" id="v-calls">—</div>
+            <span class="kpi-sub">completed</span>
+          </div>
+          <div class="da-wrap" id="v-calls-d"></div>
         </div>
       </div>
 
@@ -410,13 +410,12 @@ body::before{
       </div>
 
       <div class="kpi-tile">
-        <span class="kpi-lbl">Target Achieved</span>
+        <span class="kpi-lbl">Revenue</span>
         <div class="kpi-row">
-          <div class="ta-wrap">
-            <div class="ta-pct" id="v-att">—</div>
-            <span class="ta-sub" id="v-att-s">of target</span>
+          <div>
+            <div class="kpi-val" id="v-revenue">—</div>
+            <span class="kpi-sub" id="v-revenue-sub">calculation pending</span>
           </div>
-          <div id="v-att-badge"></div>
         </div>
       </div>
     </div><!-- /sidebar -->
@@ -766,10 +765,8 @@ function renderAll() {
   $n('v-credits',  nf(totCredits));
   $n('v-ratio',    ratio.toFixed(2) + '×');
   $n('v-ratio-sub', ratio > 2 ? 'high value' : ratio > 1.5 ? 'good' : 'moderate');
-  $n('v-att',      attPct + '%');
-  const achieved = attPct >= 100;
-  $n('v-att-badge', `<span style="font-size:22px;line-height:1">${achieved ? '✅' : '⚠️'}</span>`);
-  $n('v-att-s',    `${totCalls.toLocaleString(CONFIG.LOCALE)} of ${totPot.toLocaleString(CONFIG.LOCALE)}`);
+  $n('v-revenue',     '—');
+  $n('v-revenue-sub', 'calculation pending');
   $n('v-calls-d',  daEl(dCalls));
   $n('v-credits-d',daEl(dCred));
   $n('v-ratio-d',  daEl(dRatio));
