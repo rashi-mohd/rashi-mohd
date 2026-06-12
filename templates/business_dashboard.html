@@ -692,13 +692,6 @@ window.addEventListener('DOMContentLoaded', async () => {
   renderAll();
   initClientSort();
 
-  // Auto-refresh data on the same cadence as the other dashboards
-  setInterval(async () => {
-    console.log('Auto-refreshing business dashboard data...');
-    await loadData();
-    applyStoredForecasts();
-    renderAll();
-  }, DashboardConfig.autoRefreshInterval);
 });
 
 /* ─── DATA LOADING ─── */
@@ -1282,19 +1275,25 @@ function startShowcaseCycle() {
   if (showcaseMode) scTimer = setTimeout(_showShowcase, SC_MAIN_MS);
 }
 
-function _showShowcase() {
+async function _showShowcase() {
   if (!showcaseMode) return;
-  if (!DB.current) { startShowcaseCycle(); return; }
+  await loadData();
+  applyStoredForecasts();
+  renderAll();
   _renderShowcase();
   document.getElementById('showcase').classList.add('sc-on');
   document.body.classList.add('sc-active');
   scTimer = setTimeout(_hideShowcase, SC_SHOWCASE_MS);
 }
 
-function _hideShowcase() {
+async function _hideShowcase() {
   document.getElementById('showcase').classList.remove('sc-on');
   document.body.classList.remove('sc-active');
-  if (showcaseMode) scTimer = setTimeout(_showShowcase, SC_MAIN_MS);
+  if (!showcaseMode) return;
+  await loadData();
+  applyStoredForecasts();
+  renderAll();
+  scTimer = setTimeout(_showShowcase, SC_MAIN_MS);
 }
 
 function _renderShowcase() {
