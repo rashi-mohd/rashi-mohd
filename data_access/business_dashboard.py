@@ -195,6 +195,37 @@ def fetch_per_credit_cost_inr(org_ids):
     return result
 
 
+def fetch_plan_data(org_ids):
+    """
+    Returns {org_id: {'period_end': 'YYYY-MM-DD' | None, 'interview_quota': int | None}}
+    for the given list of org UUIDs. Used for Plan End and Quota Left columns.
+    """
+    if not org_ids:
+        return {}
+    conn = get_db_connection()
+    result = {}
+    try:
+        with conn.cursor() as cur:
+            placeholders = ', '.join(['%s'] * len(org_ids))
+            cur.execute(f"""
+                SELECT id, period_end, interview_quota
+                FROM user_management_organization
+                WHERE id::text IN ({placeholders})
+            """, org_ids)
+            for row in cur.fetchall():
+                period_end = row.get('period_end')
+                quota = row.get('interview_quota')
+                result[str(row['id'])] = {
+                    'period_end':       str(period_end)[:10] if period_end is not None else None,
+                    'interview_quota':  int(quota) if quota is not None else None,
+                }
+    except psycopg2.Error as e:
+        print(f"Database error in fetch_plan_data: {e}")
+    finally:
+        conn.close()
+    return result
+
+
 def fetch_monthly_summaries(start_utc, end_utc):
     """
     Returns per-month aggregates of DONE calls and credits within the given UTC window.

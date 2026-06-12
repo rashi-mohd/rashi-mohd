@@ -73,7 +73,7 @@ from data_access.interview_potentials import (
 from data_access.subscription_updates import get_subscription_logs_for_organization
 from services.subscription_service import process_subscription_update
 from services.potential_integration import add_potential_status_to_clients, add_potential_status_to_clients_with_date_range
-from data_access.business_dashboard import fetch_daily_call_breakdown, fetch_monthly_summaries, fetch_org_id_by_name, fetch_per_credit_cost_inr
+from data_access.business_dashboard import fetch_daily_call_breakdown, fetch_monthly_summaries, fetch_org_id_by_name, fetch_per_credit_cost_inr, fetch_plan_data
 from data_access.notification_config import fetch_all_organizations, fetch_organization_with_config, fetch_jobs_for_organization, fetch_job_with_config
 from services.notification_config import update_org_notification_config, update_job_notification_config
 
@@ -1699,6 +1699,13 @@ def api_business_summary():
         cost_by_org = fetch_per_credit_cost_inr([c['org_id'] for c in clients_out])
         for c in clients_out:
             c['per_credit_cost_inr'] = cost_by_org.get(c['org_id'], 0.0)
+
+        # ── Plan end date + interview quota ───────────────────────────
+        plan_by_org = fetch_plan_data([c['org_id'] for c in clients_out])
+        for c in clients_out:
+            pd = plan_by_org.get(c['org_id'], {})
+            c['period_end']      = pd.get('period_end')
+            c['interview_quota'] = pd.get('interview_quota')
 
         # ── Daily breakdown: ALWAYS current calendar month (sparkline) ─
         cur_month_start_ist = IST.localize(dt_cls(cur_year, cur_month, 1, 0, 0, 0))

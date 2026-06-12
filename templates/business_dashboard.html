@@ -250,13 +250,6 @@ body::before{
 .a-txt{font-size:11px;color:var(--ink3);line-height:1.6;}
 .a-txt strong{color:var(--ink);font-weight:600;}
 
-/* PVSA */
-.pv{margin-bottom:10px;}
-.pv-h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;}
-.pv-n{font-size:11.5px;font-weight:500;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px;}
-.pv-a{color:var(--p600);font-weight:700;}
-.pv-t{color:var(--ink5);}
-
 /* SHARE */
 .sh{display:flex;align-items:center;gap:7px;margin-bottom:7px;}
 .sh-dot{width:6px;height:6px;border-radius:2px;flex-shrink:0;}
@@ -274,19 +267,6 @@ body::before{
 #all-clients-hd th.sort-asc .sort-icon,
 #all-clients-hd th.sort-desc .sort-icon { opacity:1; color:var(--p500); }
 
-/* EDITABLE FORECAST INPUT */
-.fc-input{
-  width:58px;border:1px solid transparent;border-radius:4px;
-  background:transparent;font-size:11.5px;font-family:'Inter',sans-serif;
-  color:var(--ink4);padding:2px 5px;text-align:right;
-  transition:border-color .15s,background .15s;outline:none;
-  -moz-appearance:textfield;
-}
-.fc-input::-webkit-outer-spin-button,.fc-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
-.fc-input:hover{border-color:var(--mist);background:var(--ghost);}
-.fc-input:focus{border-color:var(--p300);background:var(--white);color:var(--ink);box-shadow:0 0 0 2px rgba(105,53,222,.08);}
-@keyframes fcFlash{0%{background:var(--p50);}100%{background:transparent;}}
-.fc-saved{animation:fcFlash .6s ease;}
 
 /* SCROLL inside cards */
 .scr{overflow-y:auto;}
@@ -596,7 +576,7 @@ body.sc-active #body{opacity:0;transform:translateX(-48px);pointer-events:none;}
             <div class="ct" style="margin-bottom:12px">Top 10 Clients</div>
             <div style="overflow-x:auto">
               <table class="tbl">
-                <thead><tr><th>#</th><th>Client</th><th>Interviews</th><th>Credits</th><th>Ratio</th><th>Forecast</th><th>Attainment</th></tr></thead>
+                <thead><tr><th>#</th><th>Client</th><th>Interviews</th><th>Credits</th><th>Ratio</th><th>Plan End</th><th>Quota Left</th></tr></thead>
                 <tbody id="top10"></tbody>
               </table>
             </div>
@@ -609,15 +589,9 @@ body.sc-active #body{opacity:0;transform:translateX(-48px);pointer-events:none;}
 
         <!-- Intelligence -->
         <div class="sl">Intelligence</div>
-        <div class="g2">
-          <div class="card ani">
-            <div class="ct" style="margin-bottom:10px">Improvement Areas</div>
-            <div class="scr" style="max-height:300px" id="alerts"></div>
-          </div>
-          <div class="card ani">
-            <div class="ct" style="margin-bottom:10px">Forecast vs Actual</div>
-            <div class="scr" style="max-height:300px" id="pvsa"></div>
-          </div>
+        <div class="card ani" style="margin-bottom:12px">
+          <div class="ct" style="margin-bottom:10px">Improvement Areas</div>
+          <div class="scr" style="max-height:220px" id="alerts"></div>
         </div>
 
         <!-- All Clients -->
@@ -633,8 +607,8 @@ body.sc-active #body{opacity:0;transform:translateX(-48px);pointer-events:none;}
                 <th data-col="calls">Interviews <span class="sort-icon" data-col="calls">↕</span></th>
                 <th data-col="credits">Credits <span class="sort-icon" data-col="credits">↕</span></th>
                 <th data-col="ratio">Ratio <span class="sort-icon" data-col="ratio">↕</span></th>
-                <th data-col="" style="cursor:default" title="Click any value to edit">Forecast ✎</th>
-                <th data-col="att">Attainment <span class="sort-icon" data-col="att">↕</span></th>
+                <th data-col="plan_end">Plan End <span class="sort-icon" data-col="plan_end">↕</span></th>
+                <th data-col="quota">Quota Left <span class="sort-icon" data-col="quota">↕</span></th>
                 <th data-col="" style="cursor:default">Signal</th>
               </tr></thead>
               <tbody id="all-clients"></tbody>
@@ -688,8 +662,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('hdr-date').textContent = now.toLocaleDateString(CONFIG.LOCALE, {weekday:'short',day:'numeric',month:'short',year:'numeric'});
 
   await loadData();
-  applyStoredForecasts();
-  renderAll();
+    renderAll();
   initClientSort();
 
 });
@@ -763,17 +736,17 @@ function setDurDD(sel) {
   if (d === 'custom') { document.getElementById('custom-range').classList.add('show'); return; }
   document.getElementById('custom-range').classList.remove('show');
   curDur = parseInt(d); customFrom = null; customTo = null;
-  loadData().then(() => { applyStoredForecasts(); renderAll(); });
+  loadData().then(() => renderAll());
 }
 function applyCustom() {
   customFrom = document.getElementById('date-from').value;
   customTo   = document.getElementById('date-to').value;
   if (!customFrom || !customTo) { alert('Select both dates'); return; }
-  loadData().then(() => { applyStoredForecasts(); renderAll(); });
+  loadData().then(() => renderAll());
 }
 function setViewDD(sel) {
   curView = sel.value;
-  loadData().then(() => { applyStoredForecasts(); renderAll(); });
+  loadData().then(() => renderAll());
 }
 function setMomView(v, btn) {
   document.querySelectorAll('#mom-toggle .ctgl-btn').forEach(b => b.classList.remove('on'));
@@ -822,9 +795,7 @@ function getKpiData() {
   // Recompute totals from filtered client list
   const totCalls   = clients.reduce((s, c) => s + c.calls, 0);
   const totCredits = Math.round(clients.reduce((s, c) => s + c.credits, 0) * 10) / 10;
-  const totPot     = clients.reduce((s, c) => s + (c.potential || 0), 0);
   const ratio      = totCalls > 0 ? totCredits / totCalls : 0;
-  const attPct     = totPot > 0 ? Math.round((totCalls / totPot) * 100) : 0;
 
   const active = clients.filter(c => c.calls > 0);
   const avgInt = active.length ? Math.round(totCalls / active.length) : 0;
@@ -832,7 +803,7 @@ function getKpiData() {
   // Revenue = sum of (credits × per_interview_cost_inr) per org
   const revenue = clients.reduce((s, c) => s + (c.credits * (c.per_credit_cost_inr || 0)), 0);
 
-  return { clients, totCalls, totCredits, totPot, ratio, attPct, prev, cur, avgInt, active, revenue };
+  return { clients, totCalls, totCredits, ratio, prev, cur, avgInt, active, revenue };
 }
 
 function periodLabel() {
@@ -846,7 +817,7 @@ function periodLabel() {
 function renderAll() {
   if (!DB.current) return;
   const trendHist = getFilteredHistory();
-  const { clients, totCalls, totCredits, totPot, ratio, attPct, prev, cur, avgInt, active, revenue } = getKpiData();
+  const { clients, totCalls, totCredits, ratio, prev, cur, avgInt, active, revenue } = getKpiData();
 
   document.getElementById('sidebar-period').textContent = periodLabel();
 
@@ -881,8 +852,7 @@ function renderAll() {
   renderMoMChart(trendHist);
   renderTop10(clients, totCredits);
   renderDonut(clients, totCredits);
-  renderAlerts(clients, attPct, totCredits, dCalls, dCred, totPot, totCalls);
-  renderPvsa(clients);
+  renderAlerts(clients, totCredits, dCalls, dCred);
   renderAllClients(DB.allClients);
 }
 
@@ -1044,21 +1014,56 @@ function renderSpark() {
   });
 }
 
+/* ─── PLAN DATE + QUOTA HELPERS ─── */
+function fmtDate(s) {
+  if (!s) return '—';
+  const d = new Date(s);
+  if (isNaN(d)) return s;
+  return d.toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+}
+
+function planRenewalFlags(c) {
+  // returns {endSoon: bool, quotaLow: bool, daysLeft: int|null}
+  let endSoon = false, quotaLow = false, daysLeft = null;
+  if (c.period_end) {
+    const ms = new Date(c.period_end) - Date.now();
+    daysLeft = Math.round(ms / 86400000);
+    if (daysLeft >= 0 && daysLeft <= 14) endSoon = true;
+  }
+  if (c.interview_quota !== null && c.interview_quota !== undefined && c.interview_quota <= 50) {
+    quotaLow = true;
+  }
+  return { endSoon, quotaLow, daysLeft };
+}
+
+function renewalBadge(c) {
+  const { endSoon, quotaLow, daysLeft } = planRenewalFlags(c);
+  if (!endSoon && !quotaLow) return '';
+  const tip = [
+    endSoon ? `${daysLeft}d to plan end` : '',
+    quotaLow ? `${c.interview_quota ?? 0} interviews left` : ''
+  ].filter(Boolean).join(' · ');
+  return `<span class="badge ba" title="${tip}" style="gap:4px">⚠ Renewal</span>`;
+}
+
 /* ─── CLIENT TABLE RENDERS ─── */
 function renderTop10(clients, totC) {
   const top10 = [...clients].sort((a,b) => b.credits - a.credits).slice(0,10);
   document.getElementById('top10').innerHTML = top10.map((c,i) => {
-    const u   = c.potential > 0 ? Math.round((c.calls / c.potential) * 100) : null;
     const rc  = c.ratio > 2 ? 'color:#059669;font-weight:700' : c.ratio > 1.5 ? 'color:var(--p600);font-weight:600' : 'color:var(--ink3)';
     const rkc = i===0?'r1':i===1?'r2':i===2?'r3':'rn';
+    const { endSoon, quotaLow, daysLeft } = planRenewalFlags(c);
+    const endStyle = endSoon ? 'color:var(--amber);font-weight:600' : 'color:var(--ink4)';
+    const qLeft = c.interview_quota !== null && c.interview_quota !== undefined ? c.interview_quota : null;
+    const qStyle = quotaLow ? 'color:var(--rose);font-weight:700' : 'color:var(--ink3)';
     return `<tr>
       <td><span class="rank ${rkc}">${i+1}</span></td>
       <td style="font-weight:500;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink)">${c.name}</td>
       <td>${c.calls.toLocaleString(CONFIG.LOCALE)}</td>
       <td style="font-weight:600;color:var(--p600)">${nf(c.credits)}</td>
       <td><span style="${rc}">${c.ratio.toFixed(2)}×</span></td>
-      <td style="color:var(--ink4)">${c.potential || '—'}</td>
-      <td>${u !== null ? `<div style="display:flex;align-items:center;gap:6px"><div class="bt" style="width:46px"><div class="bf" style="width:${Math.min(100,u)}%;background:${u>=100?'var(--p600)':u>=70?'#059669':u>=40?'#D97706':'#E11D48'}"></div></div><span style="font-size:9.5px;font-weight:600;color:${u>=100?'var(--p600)':'var(--ink4)'}">${u}%</span></div>` : '<span style="color:var(--ink6)">—</span>'}</td>
+      <td style="${endStyle}">${endSoon ? '⚠ ' : ''}${fmtDate(c.period_end)}</td>
+      <td style="${qStyle}">${qLeft !== null ? qLeft.toLocaleString(CONFIG.LOCALE) : '—'}${renewalBadge(c) ? ' ⚠' : ''}</td>
     </tr>`;
   }).join('');
 }
@@ -1073,10 +1078,9 @@ function renderDonut(clients, totC) {
   });
 }
 
-function renderAlerts(clients, attPct, totCredits, dCalls, dCred, totPot, totCalls) {
-  const top10   = [...clients].sort((a,b) => b.credits - a.credits).slice(0,10);
-  const withPot = clients.filter(c => c.potential > 0);
-  const flags   = [];
+function renderAlerts(clients, totCredits, dCalls, dCred) {
+  const top10  = [...clients].sort((a,b) => b.credits - a.credits).slice(0,10);
+  const flags  = [];
 
   const highR = clients.filter(c => c.ratio > 2 && c.calls >= 5).sort((a,b) => b.ratio - a.ratio);
   if (highR.length) flags.push({t:'ag',i:'💰',txt:`<strong>${highR.slice(0,3).map(c=>c.name).join(', ')}${highR.length>3?` +${highR.length-3} more`:''}</strong> ratio above 2.0× — generating strong credit revenue.`});
@@ -1084,15 +1088,17 @@ function renderAlerts(clients, attPct, totCredits, dCalls, dCred, totPot, totCal
   const lowR = clients.filter(c => c.ratio < 1.5 && c.calls >= 10).sort((a,b) => a.ratio - b.ratio);
   if (lowR.length) flags.push({t:'aw',i:'👀',txt:`<strong>${lowR.slice(0,3).map(c=>c.name).join(', ')}${lowR.length>3?` +${lowR.length-3} more`:''}</strong> — ratio below 1.5×. Review these accounts.`});
 
-  if (attPct < 50)       flags.push({t:'ab',i:'❌',txt:`Target achieved: <strong>${attPct}%</strong>. Need <strong>${Math.max(0,totPot-totCalls).toLocaleString(CONFIG.LOCALE)} more interviews</strong> to hit forecast.`});
-  else if (attPct < 75)  flags.push({t:'aw',i:'⚡',txt:`Target achieved: <strong>${attPct}%</strong> — <strong>${Math.max(0,totPot-totCalls).toLocaleString(CONFIG.LOCALE)} interviews</strong> left to reach forecast.`});
-  else                   flags.push({t:'ag',i:'🎯',txt:`Strong performance — <strong>${attPct}%</strong> of forecast achieved.${totPot>totCalls?` <strong>${(totPot-totCalls).toLocaleString(CONFIG.LOCALE)}</strong> to go for 100%.`:' Target hit!'}`});
-
-  const underU = withPot.filter(c => (c.calls / c.potential) < 0.4);
-  if (underU.length) flags.push({t:'ab',i:'📉',txt:`<strong>${underU.slice(0,3).map(c=>`${c.name} (${Math.round((c.calls/c.potential)*100)}%)`).join(', ')}</strong> far below forecast — direct outreach needed.`});
+  // Up-for-renewal alerts
+  const renewalClients = clients.filter(c => {
+    const { endSoon, quotaLow } = planRenewalFlags(c);
+    return endSoon || quotaLow;
+  });
+  if (renewalClients.length) {
+    flags.push({t:'aw',i:'🔔',txt:`<strong>${renewalClients.slice(0,4).map(c=>c.name).join(', ')}${renewalClients.length>4?` +${renewalClients.length-4} more`:''}</strong> — up for renewal (plan ending or quota running low).`});
+  }
 
   const t3  = top10.slice(0,3).reduce((s,c) => s+c.credits, 0);
-  const t3p = Math.round((t3 / totCredits) * 100);
+  const t3p = totCredits > 0 ? Math.round((t3 / totCredits) * 100) : 0;
   if (t3p > 55) flags.push({t:'aw',i:'⚖️',txt:`Top 3 clients account for <strong>${t3p}%</strong> of credits — high concentration risk.`});
 
   if (dCalls !== null && dCalls < -8) flags.push({t:'ab',i:'📊',txt:`Interview volume down <strong>${Math.abs(dCalls)}%</strong> vs prev period.`});
@@ -1101,17 +1107,6 @@ function renderAlerts(clients, attPct, totCredits, dCalls, dCred, totPot, totCal
   $n('alerts', flags.map((f,i) => `<div class="alert ${f.t}" style="animation-delay:${i*.05}s"><div class="a-ico">${f.i}</div><div class="a-txt">${f.txt}</div></div>`).join(''));
 }
 
-function renderPvsa(clients) {
-  const withPot = clients.filter(c => c.potential > 0);
-  const el = document.getElementById('pvsa');
-  if (!withPot.length) { el.innerHTML = '<div style="color:var(--ink5);font-size:11.5px;text-align:center;padding:20px">No forecast data set. Edit the Forecast column in the table below.</div>'; return; }
-  el.innerHTML = [...withPot].sort((a,b) => b.potential - a.potential).map(c => {
-    const pRaw = Math.round((c.calls / c.potential) * 100);
-    const p    = Math.min(100, pRaw);
-    const col  = p >= 70 ? '#059669' : p >= 40 ? '#D97706' : '#E11D48';
-    return `<div class="pv"><div class="pv-h"><span class="pv-n">${c.name}</span><span style="font-size:10.5px"><span class="pv-a">${c.calls}</span><span class="pv-t">/${c.potential} · <strong style="color:${pRaw>=100?'var(--green)':col}">${pRaw}%</strong></span></span></div><div class="bt"><div class="bf" style="width:${p}%;background:${col}"></div></div></div>`;
-  }).join('');
-}
 
 /* ─── CLIENT SORT ─── */
 let acSortCol = 'credits', acSortDir = 'desc';
@@ -1140,22 +1135,26 @@ function renderAllClients(clients) {
   const safe = clients.filter(c => c.name);
   const sorted = [...safe].sort((a,b) => {
     let va, vb;
-    if (acSortCol === 'name')    { va=(a.name||'').toLowerCase(); vb=(b.name||'').toLowerCase(); return acSortDir==='asc'?va.localeCompare(vb):vb.localeCompare(va); }
-    if (acSortCol === 'calls')   { va=a.calls;   vb=b.calls;   }
-    else if (acSortCol === 'credits') { va=a.credits; vb=b.credits; }
-    else if (acSortCol === 'ratio')   { va=a.ratio;   vb=b.ratio;   }
-    else if (acSortCol === 'att')     { va=a.potential>0?a.calls/a.potential:0; vb=b.potential>0?b.calls/b.potential:0; }
+    if (acSortCol === 'name')     { va=(a.name||'').toLowerCase(); vb=(b.name||'').toLowerCase(); return acSortDir==='asc'?va.localeCompare(vb):vb.localeCompare(va); }
+    if (acSortCol === 'calls')    { va=a.calls;   vb=b.calls;   }
+    else if (acSortCol === 'credits')  { va=a.credits; vb=b.credits; }
+    else if (acSortCol === 'ratio')    { va=a.ratio;   vb=b.ratio;   }
+    else if (acSortCol === 'plan_end') { va=a.period_end||''; vb=b.period_end||''; return acSortDir==='asc'?va.localeCompare(vb):vb.localeCompare(va); }
+    else if (acSortCol === 'quota')    { va=a.interview_quota??-1; vb=b.interview_quota??-1; }
     else { va=a.credits; vb=b.credits; }
     return acSortDir === 'asc' ? va-vb : vb-va;
   });
   $n('all-clients', sorted.map((c,i) => {
-    const u      = c.potential > 0 ? Math.round((c.calls / c.potential) * 100) : null;
-    const uColor = u===null?'var(--ink6)':u>=100?'var(--p600)':u>=70?'var(--green)':u>=40?'var(--amber)':'var(--rose)';
-    const rb     = c.ratio > 2 ? 'bg' : c.ratio > 1.5 ? 'bp' : 'br';
-    const rl     = c.ratio > 2 ? 'High value' : c.ratio > 1.5 ? 'Good' : 'Review';
-    const fcVal  = c.potential || '';
-    const cname  = (c.name || '').replace(/'/g, "\\'");
-    const corgId = (c.org_id || '').replace(/'/g, "\\'");
+    const rb   = c.ratio > 2 ? 'bg' : c.ratio > 1.5 ? 'bp' : 'br';
+    const rl   = c.ratio > 2 ? 'High value' : c.ratio > 1.5 ? 'Good' : 'Review';
+    const { endSoon, quotaLow, daysLeft } = planRenewalFlags(c);
+    const qLeft = c.interview_quota !== null && c.interview_quota !== undefined ? c.interview_quota : null;
+    const endTxt = c.period_end ? (endSoon ? `<span style="color:var(--amber);font-weight:600">⚠ ${fmtDate(c.period_end)}</span>` : `<span style="color:var(--ink4)">${fmtDate(c.period_end)}</span>`) : '<span style="color:var(--ink6)">—</span>';
+    const quotaTxt = qLeft !== null
+      ? (quotaLow
+        ? `<span style="color:var(--rose);font-weight:700">${qLeft.toLocaleString(CONFIG.LOCALE)}</span>`
+        : `<span style="color:var(--ink3)">${qLeft.toLocaleString(CONFIG.LOCALE)}</span>`)
+      : '<span style="color:var(--ink6)">—</span>';
     return `<tr>
       <td style="color:var(--ink6);font-size:10.5px">${i+1}</td>
       <td style="font-weight:500;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink)">${c.name}</td>
@@ -1163,58 +1162,13 @@ function renderAllClients(clients) {
       <td>${c.calls.toLocaleString(CONFIG.LOCALE)}</td>
       <td style="font-weight:600;color:var(--p600)">${nf(c.credits)}</td>
       <td style="font-weight:500;color:${c.ratio>2?'var(--green)':c.ratio>1.5?'var(--p600)':'var(--ink3)'}">${c.ratio.toFixed(2)}×</td>
-      <td><input class="fc-input" type="number" min="0" value="${fcVal}" placeholder="—"
-           onchange="saveForecast('${corgId}','${cname}',parseInt(this.value)||0)"
-           onblur="this.classList.add('fc-saved');setTimeout(()=>this.classList.remove('fc-saved'),500)"
-           title="Click to edit forecast target"></td>
-      <td style="font-weight:600;color:${uColor}">${u!==null?u+'%':'—'}</td>
-      <td><span class="badge ${rb}">${rl}</span></td>
+      <td>${endTxt}</td>
+      <td>${quotaTxt}</td>
+      <td><span class="badge ${rb}">${rl}</span>${renewalBadge(c)}</td>
     </tr>`;
   }).join(''));
 }
 
-/* ─── FORECAST SAVE ─── */
-const FORECAST_KEY = 'fabric_biz_forecasts';
-
-function loadForecasts() {
-  try { return JSON.parse(localStorage.getItem(FORECAST_KEY) || '{}'); } catch { return {}; }
-}
-
-async function saveForecast(orgId, name, val) {
-  const cl = DB.current.clients.find(c => c.org_id === orgId);
-  if (cl) cl.potential = val;
-  const acl = DB.allClients.find(c => c.org_id === orgId);
-  if (acl) acl.potential = val;
-
-  const store = loadForecasts();
-  if (val > 0) store[orgId] = val; else delete store[orgId];
-  try { localStorage.setItem(FORECAST_KEY, JSON.stringify(store)); } catch {}
-
-  try {
-    const res = await fetch(CONFIG.API_FORECAST, {
-      method:  'POST',
-      credentials: 'same-origin',
-      headers: { 'Content-Type':'application/json' },
-      body:    JSON.stringify({ org_id: orgId, client_name: name, forecast: val, user: CURRENT_USER })
-    });
-    if (!res.ok) console.warn(`Forecast save failed: HTTP ${res.status}`);
-  } catch (err) {
-    console.warn('Forecast save to API failed (cached locally):', err.message);
-  }
-
-  renderAll();
-}
-
-function applyStoredForecasts() {
-  const store = loadForecasts();
-  if (!DB.current) return;
-  DB.current.clients.forEach(c => {
-    if (store[c.org_id] !== undefined) c.potential = store[c.org_id];
-  });
-  DB.allClients.forEach(c => {
-    if (store[c.org_id] !== undefined) c.potential = store[c.org_id];
-  });
-}
 
 /* ─── EXPORT CSV ─── */
 function doExport() {
@@ -1222,15 +1176,13 @@ function doExport() {
   const clients = DB.allClients.length ? DB.allClients : DB.current.clients
     .filter(c => !isFabricInternal(c.admin_email))
     .map(c => ({...c, ratio: c.calls>0 ? c.credits/c.calls : 0}));
-  const rows = [['Client','Interviews','Credits','Ratio','Forecast','Attainment %']];
+  const rows = [['Client','Interviews','Credits','Ratio','Plan End','Quota Left']];
   clients.sort((a,b) => b.credits - a.credits).forEach(c => {
-    const att = c.potential > 0 ? Math.round((c.calls / c.potential) * 100) : '';
-    rows.push([c.name, c.calls, c.credits.toFixed(1), c.ratio.toFixed(3), c.potential||'', att]);
+    rows.push([c.name, c.calls, c.credits.toFixed(1), c.ratio.toFixed(3), c.period_end||'', c.interview_quota??'']);
   });
   const tc  = clients.reduce((s,c) => s+c.calls, 0);
   const tcr = clients.reduce((s,c) => s+c.credits, 0);
-  const totalPot = clients.reduce((s,c) => s+(c.potential||0), 0);
-  rows.push([], ['TOTAL', tc, tcr.toFixed(1), (tcr/tc).toFixed(3), totalPot, totalPot > 0 ? Math.round((tc/totalPot)*100)+'%' : '']);
+  rows.push([], ['TOTAL', tc, tcr.toFixed(1), (tcr/tc).toFixed(3), '', '']);
   const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
   const a   = document.createElement('a');
   a.href    = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
@@ -1278,8 +1230,7 @@ function startShowcaseCycle() {
 async function _showShowcase() {
   if (!showcaseMode) return;
   await loadData();
-  applyStoredForecasts();
-  renderAll();
+    renderAll();
   _renderShowcase();
   document.getElementById('showcase').classList.add('sc-on');
   document.body.classList.add('sc-active');
@@ -1291,8 +1242,7 @@ async function _hideShowcase() {
   document.body.classList.remove('sc-active');
   if (!showcaseMode) return;
   await loadData();
-  applyStoredForecasts();
-  renderAll();
+    renderAll();
   scTimer = setTimeout(_showShowcase, SC_MAIN_MS);
 }
 
