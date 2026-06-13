@@ -396,10 +396,9 @@ body.sc-mode .sub-val,
 body.sc-mode .ta-pct,
 body.sc-mode .spark-kv{
   color:#f7f5ff;
-  text-shadow:0 0 20px rgba(124,77,255,.5);
 }
 body.sc-mode .sub-val.sm,
-body.sc-mode .spark-kv.accent{color:#c4b5fd;text-shadow:0 0 18px rgba(124,77,255,.55);}
+body.sc-mode .spark-kv.accent{color:#c4b5fd;}
 
 /* Labels / titles — brighter for legibility */
 body.sc-mode .kpi-lbl,
@@ -463,11 +462,8 @@ body.sc-active #body{opacity:0;transform:translateX(-48px);pointer-events:none;}
   border-bottom:1px solid rgba(149,108,255,.28);
   padding-bottom:14px;margin-bottom:28px;
 }
-.sc-title{
-  font-size:26px;font-weight:700;letter-spacing:-.02em;color:#f7f5ff;
-  text-shadow:0 0 28px rgba(124,77,255,.45);
-}
-.sc-subtitle{font-size:13px;font-weight:600;color:#c4b5fd;text-shadow:0 0 16px rgba(124,77,255,.4);}
+.sc-title{font-size:26px;font-weight:700;letter-spacing:-.02em;color:#f7f5ff;}
+.sc-subtitle{font-size:13px;font-weight:600;color:#c4b5fd;}
 
 .sc-row{
   display:flex;align-items:center;gap:14px;margin-bottom:13px;
@@ -475,10 +471,7 @@ body.sc-active #body{opacity:0;transform:translateX(-48px);pointer-events:none;}
 }
 @keyframes sc-in{from{opacity:0;transform:translateX(-20px);}to{opacity:1;transform:translateX(0);}}
 
-.sc-rk{
-  width:22px;font-size:12px;font-weight:700;color:#c4b5fd;text-align:right;flex-shrink:0;
-  text-shadow:0 0 12px rgba(124,77,255,.5);
-}
+.sc-rk{width:22px;font-size:12px;font-weight:700;color:#c4b5fd;text-align:right;flex-shrink:0;}
 .sc-nm{
   width:190px;font-size:14px;font-weight:600;color:#f2f1fc;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;
@@ -495,18 +488,8 @@ body.sc-active #body{opacity:0;transform:translateX(-48px);pointer-events:none;}
   box-shadow:0 0 14px rgba(124,77,255,.6),inset 0 0 6px rgba(196,165,255,.4);
   animation:sc-grow .9s var(--ease) both;
 }
-/* travelling sheen along the filled bar — "alive" feel */
-.sc-bf::after{
-  content:'';position:absolute;top:0;bottom:0;width:40%;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent);
-  animation:sc-sheen 2.6s ease-in-out infinite;
-}
-@keyframes sc-sheen{0%{left:-45%;}55%,100%{left:115%;}}
 @keyframes sc-grow{from{width:0}to{width:var(--tw)}}
-.sc-vl{
-  width:80px;text-align:right;font-size:14px;font-weight:700;color:#d6c8ff;flex-shrink:0;
-  text-shadow:0 0 14px rgba(124,77,255,.5);
-}
+.sc-vl{width:80px;text-align:right;font-size:14px;font-weight:700;color:#d6c8ff;flex-shrink:0;}
 </style>
 </head>
 <body>
