@@ -489,6 +489,13 @@ body.sc-active #body{opacity:0;transform:translateX(-48px);pointer-events:none;}
   animation:sc-grow .9s var(--ease) both;
 }
 @keyframes sc-grow{from{width:0}to{width:var(--tw)}}
+/* smooth travelling sheen along the filled bar */
+.sc-bf::after{
+  content:'';position:absolute;top:0;bottom:0;width:55%;
+  background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,.28) 50%,transparent 100%);
+  animation:sc-sheen 3.8s ease-in-out infinite;
+}
+@keyframes sc-sheen{0%{left:-60%;}100%{left:120%;}}
 .sc-vl{width:80px;text-align:right;font-size:14px;font-weight:700;color:#d6c8ff;flex-shrink:0;}
 </style>
 </head>
