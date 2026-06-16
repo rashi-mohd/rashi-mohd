@@ -1080,10 +1080,14 @@ function renderSpark() {
     ? parseFloat((window7.reduce((s,v) => s+v, 0) / window7.length).toFixed(1))
     : Math.round(window7.reduce((s,v) => s+v, 0) / window7.length);
 
-  // Run rate = current 7-day avg × days in month
+  // Run rate = credits so far this month + (7-day avg × days remaining)
+  const creditsSoFar = isCred
+    ? parseFloat(activeDays.reduce((s,v) => s+v, 0).toFixed(1))
+    : activeDays.reduce((s,v) => s+v, 0);
+  const daysRemaining = daysInMonth - activeLen;
   const runRate = isCred
-    ? parseFloat((sevenDayAvg * daysInMonth).toFixed(1))
-    : Math.round(sevenDayAvg * daysInMonth);
+    ? parseFloat((creditsSoFar + sevenDayAvg * daysRemaining).toFixed(1))
+    : Math.round(creditsSoFar + sevenDayAvg * daysRemaining);
 
   $n('spark-kpis', `
     <div class="spark-k"><div class="spark-kl">Peak</div><div class="spark-kv">${fmt(peak)}</div></div>
@@ -1305,7 +1309,7 @@ function fmtINR(v) {
 }
 
 /* ─── TV SHOWCASE MODE ─── */
-const SC_MAIN_MS     = 120000; // 2 min on main dashboard
+const SC_MAIN_MS     = 300000; // 5 min on main dashboard
 const SC_SHOWCASE_MS = 30000;  // 30 sec on top-10 showcase
 let scTimer = null;
 let showcaseMode = false;

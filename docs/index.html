@@ -628,7 +628,9 @@ function renderSpark(){
   });
   const w7=activeDays.slice(-7);
   const avg7=isCred?parseFloat((w7.reduce((a,v)=>a+v,0)/w7.length).toFixed(1)):Math.round(w7.reduce((a,v)=>a+v,0)/w7.length);
-  const runRate=isCred?parseFloat((avg7*30).toFixed(1)):Math.round(avg7*30);
+  const creditsSoFar=isCred?parseFloat(activeDays.reduce((s,v)=>s+v,0).toFixed(1)):activeDays.reduce((s,v)=>s+v,0);
+  const daysRemaining=30-activeLen;
+  const runRate=isCred?parseFloat((creditsSoFar+avg7*daysRemaining).toFixed(1)):Math.round(creditsSoFar+avg7*daysRemaining);
 
   $n('spark-kpis',`
     <div class="spark-k"><div class="spark-kl">Peak</div><div class="spark-kv">${fmt(peak)}</div></div>
