@@ -39,15 +39,15 @@ def fetch_daily_call_breakdown(start_utc, end_utc, year, month):
 
             query = f"""
                 SELECT
-                    EXTRACT(DAY FROM cl.created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata')::int AS day_num,
+                    EXTRACT(DAY FROM cl.created_at AT TIME ZONE 'Asia/Kolkata')::int AS day_num,
                     COUNT(*) AS calls,
                     SUM(COALESCE(cl.call_credits, 1.0)) AS credits
                 FROM call_management_calllog cl
                 JOIN jobs_management_jobprofile jp ON cl.assistant_id = jp.profile_assistant_id
                 WHERE cl.call_status = 'DONE'
                   AND cl.created_at BETWEEN %s AND %s
-                  AND EXTRACT(MONTH FROM cl.created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata') = %s
-                  AND EXTRACT(YEAR  FROM cl.created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata') = %s
+                  AND EXTRACT(MONTH FROM cl.created_at AT TIME ZONE 'Asia/Kolkata') = %s
+                  AND EXTRACT(YEAR  FROM cl.created_at AT TIME ZONE 'Asia/Kolkata') = %s
                   {org_where}
                 GROUP BY day_num
                 ORDER BY day_num
@@ -249,7 +249,7 @@ def fetch_monthly_summaries(start_utc, end_utc):
 
             query = f"""
                 SELECT
-                    TO_CHAR(cl.created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata', 'YYYY-MM') AS year_month,
+                    TO_CHAR(cl.created_at AT TIME ZONE 'Asia/Kolkata', 'YYYY-MM') AS year_month,
                     COUNT(*) AS calls,
                     SUM(COALESCE(cl.call_credits, 1.0)) AS credits
                 FROM call_management_calllog cl
