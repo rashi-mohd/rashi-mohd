@@ -1354,7 +1354,18 @@ async function _hideShowcase() {
 
 function _renderShowcase() {
   const { clients } = getKpiData();
-  const top10   = [...clients].sort((a, b) => b.credits - a.credits).slice(0, 10);
+
+  // Merge all Trigent accounts into one entity for showcase display only
+  const trigent = clients.filter(c => c.name && c.name.toLowerCase().includes('trigent'));
+  const others  = clients.filter(c => !c.name || !c.name.toLowerCase().includes('trigent'));
+  const merged  = trigent.length ? [{
+    name: 'Pricing Software Pvt. Ltd.',
+    credits: trigent.reduce((s, c) => s + c.credits, 0),
+    calls:   trigent.reduce((s, c) => s + c.calls,   0),
+  }] : [];
+  const showcaseClients = [...others, ...merged];
+
+  const top10   = [...showcaseClients].sort((a, b) => b.credits - a.credits).slice(0, 10);
   const maxCred = top10[0]?.credits || 1;
   const period  = periodLabel();
 
