@@ -1152,9 +1152,24 @@ function renewalBadge(c) {
   return `<span class="badge ba" title="${tip}" style="gap:4px">⚠ Renewal</span>`;
 }
 
+/* ─── TRIGENT MERGE — used in Top 10 table, donut and showcase ─── */
+function mergeForDisplay(clients) {
+  const trigent = clients.filter(c => c.name && c.name.toLowerCase().includes('trigent'));
+  if (!trigent.length) return clients;
+  const others  = clients.filter(c => !c.name || !c.name.toLowerCase().includes('trigent'));
+  const merged  = {
+    name:    'Trigent Software Pvt. Ltd.',
+    credits: trigent.reduce((s, c) => s + c.credits, 0),
+    calls:   trigent.reduce((s, c) => s + c.calls,   0),
+    ratio:   0,
+  };
+  merged.ratio = merged.calls > 0 ? merged.credits / merged.calls : 0;
+  return [...others, merged];
+}
+
 /* ─── CLIENT TABLE RENDERS ─── */
 function renderTop10(clients, totC) {
-  const top10 = [...clients].sort((a,b) => b.credits - a.credits).slice(0,10);
+  const top10 = [...mergeForDisplay(clients)].sort((a,b) => b.credits - a.credits).slice(0,10);
   document.getElementById('top10').innerHTML = top10.map((c,i) => {
     const rc  = c.ratio > 2 ? 'color:#059669;font-weight:700' : c.ratio > 1.5 ? 'color:var(--p600);font-weight:600' : 'color:var(--ink3)';
     const rkc = i===0?'r1':i===1?'r2':i===2?'r3':'rn';
@@ -1175,7 +1190,7 @@ function renderTop10(clients, totC) {
 }
 
 function renderDonut(clients, totC) {
-  const top10 = [...clients].sort((a,b) => b.credits - a.credits).slice(0,10);
+  const top10 = [...mergeForDisplay(clients)].sort((a,b) => b.credits - a.credits).slice(0,10);
   killC('donut');
   CH['donut'] = new Chart(cx('donut'), {
     type: 'doughnut',
@@ -1354,18 +1369,7 @@ async function _hideShowcase() {
 
 function _renderShowcase() {
   const { clients } = getKpiData();
-
-  // Merge all Trigent accounts into one entity for showcase display only
-  const trigent = clients.filter(c => c.name && c.name.toLowerCase().includes('trigent'));
-  const others  = clients.filter(c => !c.name || !c.name.toLowerCase().includes('trigent'));
-  const merged  = trigent.length ? [{
-    name: 'Pricing Software Pvt. Ltd.',
-    credits: trigent.reduce((s, c) => s + c.credits, 0),
-    calls:   trigent.reduce((s, c) => s + c.calls,   0),
-  }] : [];
-  const showcaseClients = [...others, ...merged];
-
-  const top10   = [...showcaseClients].sort((a, b) => b.credits - a.credits).slice(0, 10);
+  const top10 = [...mergeForDisplay(clients)].sort((a, b) => b.credits - a.credits).slice(0, 10);
   const maxCred = top10[0]?.credits || 1;
   const period  = periodLabel();
 
